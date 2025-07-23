@@ -1,47 +1,58 @@
 import { Request, Response } from "express";
-import UserModel from "../models/user.model";
+import User from "../models/user.model";
 import { generateToken } from "../utils/token-manage";
 import bcrypt from "bcrypt";
 
 export const registerUser = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
-  const existingUser = await UserModel.findOne({ email });
+  const existingUser = await User.findOne({ email });
   if (existingUser)
     return res.status(400).json({ message: "User already exists" });
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const newUser = await UserModel.create({
+  const newUser = await User.create({
     name,
     email,
     password: hashedPassword,
   });
 
-  const token = generateToken(newUser?._id.toString());
+  const token = generateToken(newUser._id.toString());
 
-  return res.status(201).json({ userId: newUser._id, token });
+  return res.status(201).json({
+    user: { id: newUser._id, name: newUser.name, email: newUser.email },
+    token,
+  });
 };
 
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const user = await UserModel.findOne({ email });
+  const user = await User.findOne({ email });
   if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-  const isMatch = await user.comparePassword(password);
+  const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-  const token = generateToken(user._id);
+  const token = generateToken(user._id.toString());
 
-  res
-    .cookie("token", token, { httpOnly: true, secure: false })
-    .status(200)
-    .json({ user: { name: user.name, email: user.email, id: user._id } });
+  return res.status(200).json({
+    user: { id: user._id, name: user.name, email: user.email },
+    token,
+  });
 };
 
 export const getProfile = async (req: Request, res: Response) => {
-  const user = await UserModel.findById(req.user.id).select("-password");
-  res.status(200).json({ user });
+  const user = await User.findById(req.params?.id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  return res.status(200).json({ user });
+};
+
+export const logoutUser = async (req: Request, res: Response) => {
+  return res
+    .status(200)
+    .json({ message: "Logout successful. Clear token on frontend." });
 };

@@ -12,15 +12,16 @@ export const verifyToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.headers["authorization"]?.split(" ")[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader?.split(" ")[1];
 
-  if (!token) return res.status(401).json({ message: "Token Not Received" });
+  if (!token) return res.status(401).json({ message: "Token not provided" });
 
   try {
-    const success = jwt.verify(token, process.env.JWT_SECRET as string);
-    req.user = success;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    req.user = decoded;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid Token" });
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
