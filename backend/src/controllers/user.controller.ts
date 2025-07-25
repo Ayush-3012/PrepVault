@@ -10,8 +10,7 @@ export const registerUser = async (req: Request, res: Response) => {
   if (existingUser)
     return res.status(400).json({ message: "User already exists" });
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   const newUser = await User.create({
     name,
@@ -19,21 +18,18 @@ export const registerUser = async (req: Request, res: Response) => {
     password: hashedPassword,
   });
 
-  const token = generateToken(newUser._id.toString());
-
   return res.status(201).json({
     user: { id: newUser._id, name: newUser.name, email: newUser.email },
-    token,
   });
 };
 
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  const user: any = await User.findOne({ email });
   if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = await user.comparePassword(password);
   if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
   const token = generateToken(user._id.toString());

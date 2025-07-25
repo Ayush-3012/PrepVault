@@ -14,7 +14,7 @@ userRouter.route("/login").post(loginUser);
 // userRouter.route("/auth-status").get(verifyToken, (req, res) => {
 //   return res.status(200).json({ userId: req.user.id });
 // });
-userRouter.route("/profile").get(verifyToken, getProfile);
+userRouter.route("/profile/:id").get(verifyToken, getProfile);
 userRouter.route("/logout").post(verifyToken, logoutUser);
 
 export default userRouter;

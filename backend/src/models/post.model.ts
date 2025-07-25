@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IPost extends Document {
   content: string;
+  fileUrl?: string;
   author: mongoose.Types.ObjectId;
   likes: mongoose.Types.ObjectId[];
   createdAt: Date;
@@ -11,6 +12,7 @@ export interface IPost extends Document {
 const postSchema = new Schema<IPost>(
   {
     content: { type: String, required: true, trim: true },
+    fileUrl: { type: String },
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },
     likes: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
   },

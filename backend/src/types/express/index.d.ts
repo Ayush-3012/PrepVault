@@ -7,3 +7,11 @@ declare global {
     }
   }
 }
+
+import { Request } from "express";
+
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: string; // or type of `decoded.id` (could be `UserPayload` or `string`)
+  }
+}
