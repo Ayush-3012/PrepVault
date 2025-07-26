@@ -14,6 +14,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
 
 import userRouter from "./routes/user.route";
 import postRouter from "./routes/post.route";

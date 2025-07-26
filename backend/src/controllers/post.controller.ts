@@ -3,11 +3,21 @@ import Post from "../models/post.model";
 
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { content } = req.body;
+    const { title, content, subject, course } = req.body;
     const author = (req as any).user;
-    const fileUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
-    const newPost = await Post.create({ content, author, fileUrl });
+    let fileUrl = "";
+
+    if (req.file) fileUrl = `/uploads/${req.file.filename}`;
+
+    const newPost = await Post.create({
+      title,
+      content,
+      subject,
+      course,
+      fileUrl,
+      author,
+    });
     return res.status(201).json(newPost);
   } catch (err) {
     return res.status(500).json({ message: "Error creating post" });
@@ -17,7 +27,7 @@ export const createPost = async (req: Request, res: Response) => {
 export const getAllPosts = async (_req: Request, res: Response) => {
   try {
     const posts = await Post.find()
-      .populate("author", "username")
+      .populate("author", "name")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(posts);
@@ -28,10 +38,7 @@ export const getAllPosts = async (_req: Request, res: Response) => {
 
 export const getPostById = async (req: Request, res: Response) => {
   try {
-    const post = await Post.findById(req.params.id).populate(
-      "author",
-      "username"
-    );
+    const post = await Post.findById(req.params.id).populate("author", "name");
     if (!post) return res.status(404).json({ message: "Post not found" });
     return res.status(200).json(post);
   } catch {
@@ -44,7 +51,6 @@ export const updatePost = async (req: Request, res: Response) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    // check if the current user is the author
     if ((req as any).user !== post.author.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }
@@ -62,7 +68,7 @@ export const deletePost = async (req: Request, res: Response) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    if ((req as any).user.id !== post.author.toString()) {
+    if ((req as any).user !== post.author.toString()) {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
