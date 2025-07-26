@@ -1,32 +1,45 @@
 import { useSelector } from "react-redux";
 import PostCard from "../components/PostCard";
-import { usePosts } from "../hooks/usePosts";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Posts = () => {
   const { posts } = useSelector((state: any) => state.post);
-  const postHook = usePosts();
-  const navigate = useNavigate();
+  const { userId } = useSelector((state: any) => state.auth);
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen flex flex-col gap-2 items-center justify-center bg-gray-100">
+        <p className="text-gray-600 text-xl font-semibold">
+          User Not LoggedIn...{"  "}
+          <Link
+            to={"/login"}
+            className="text-blue-500 font-bold hover:text-blue-600 text-xl"
+          >
+            Login Now
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-blue-700">All Posts</h1>
+      <div className="max-w-5xl mx-auto min-h-screen overflow-hidden px-4 py-10 max-sm:mx-0">
+        <h1 className="text-4xl font-bold text-center text-blue-700 mb-8">
+          📚 All Posts
+        </h1>
         {posts?.length === 0 ? (
-          <p className="text-gray-500">Loading posts...</p>
+          <p className="text-center text-gray-500 text-3xl">Loading posts...</p>
         ) : (
-          posts?.map((post: any) => (
-            <div
-              key={post._id}
-              onClick={async () => {
-                await postHook?.getPostById(post._id);
-                navigate(`/posts/${post._id}`);
-              }}
-              className="bg-white p-5 shadow-md cursor-pointer hover:scale-105 duration-200 transition-all ease-in-out rounded-lg mb-6 border border-gray-100"
-            >
-              <PostCard post={post} />
-            </div>
-          ))
+          <div className="overflow-y-auto p-5">
+            {posts?.map((post: any) => (
+              <Link key={post._id} to={`/posts/${post._id}`}>
+                <div className="bg-slate-200 p-4 cursor-pointer hover:scale-[1.03] duration-200 transition-all ease-in-out rounded-lg mb-4">
+                  <PostCard post={post} />
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     </>

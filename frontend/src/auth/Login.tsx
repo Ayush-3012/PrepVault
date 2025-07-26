@@ -3,6 +3,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -26,14 +27,17 @@ const Login = () => {
 
     if (!email || !password) {
       setError("All fields are required");
+      toast.error("All fields are required");
       return;
     }
 
     try {
       await auth?.login({ email, password });
       setError("");
-    } catch (err) {
+      toast.success("User Logged In");
+    } catch (err: any) {
       console.log(err);
+      toast.error(err.response.data.message);
     }
   };
 
@@ -48,8 +52,6 @@ const Login = () => {
             <h2 className="text-2xl font-bold text-center text-green-500 mb-4 underline">
               Login
             </h2>
-
-            {error && <p className="text-red-500 text-center">{error}</p>}
 
             <input
               type="email"

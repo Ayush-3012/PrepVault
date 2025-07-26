@@ -3,6 +3,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -29,19 +30,25 @@ const Register = () => {
 
     if (!name || !email || !password || !confirmPassword) {
       setError("All fields are required");
+      toast.error("All fields are required");
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      toast.error("Passwords do not match");
+
       return;
     }
 
     try {
       await auth?.register({ name, email, password });
+      toast.success("User Registered");
+
       setError("");
-    } catch (err) {
+    } catch (err: any) {
       console.log(err);
+      toast.error(err.response.data.message);
     }
   };
 

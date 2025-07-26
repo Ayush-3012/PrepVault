@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -6,21 +6,27 @@ import { logoutUser, setUserDetails, setUserInfo } from "../store/authSlice";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const [tokenChanged, setTokenChanged] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     const checkStatus = async () => {
-      const res = await API.get(`/users/auth-status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.status === 200) dispatch(setUserInfo(res?.data?.userId));
+      try {
+        const res = await API.get(`/users/auth-status`);
+        if (res.status === 200) {
+          dispatch(setUserInfo(res?.data?.userId));
+        }
+      } catch (err: any) {
+        console.log(err);
+        localStorage.removeItem("token");
+        dispatch(logoutUser());
+      }
     };
     checkStatus();
-  }, [dispatch, token]);
+  }, [dispatch, tokenChanged]);
 
   const login = async (data: any) => {
     const res = await API.post(`/users/login`, data);
@@ -28,6 +34,7 @@ export const useAuth = () => {
     if (res.status === 200) {
       localStorage.setItem("token", res?.data?.token);
       dispatch(setUserInfo(res?.data?.user?.id));
+      setTokenChanged((prev) => prev + 1);
       navigate("/");
     }
   };
@@ -48,6 +55,7 @@ export const useAuth = () => {
     if (res.status === 200) {
       localStorage.removeItem("token");
       dispatch(logoutUser());
+      setTokenChanged((prev) => prev + 1);
     }
     return res?.data?.message;
   };

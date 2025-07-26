@@ -20,13 +20,21 @@ export const usePosts = () => {
     checkPosts();
   }, []);
 
-  const getPostById = async (id: string) => {
+  const getPostById = async (id: string | undefined) => {
     const res = await API.get(`/posts/${id}`);
     if (res.status === 200) dispatch(setPostDetails(res?.data));
+
+    return res?.data;
   };
   const createPost = async (data: any) => {
-    const res = await API.post("/posts", data);
-    console.log(res);
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+    formData.append("subject", data.subject);
+    formData.append("course", data.course);
+    formData.append("file", data.file);
+
+    await API.post("/posts", formData);
   };
   const deletePost = async (id: string) => {
     const res = await API.delete(`/posts/${id}`);
